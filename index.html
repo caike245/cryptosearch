@@ -2,70 +2,86 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    meta name="theme-color" content="#0f172a">
-    <title>Crypto Tracker Ultimate</title>
+    <meta name="theme-color" content="#0f172a">
+    
+    <title>Crypto Scan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #e2e8f0;
-            --accent: #3b82f6;
-            --green: #10b981;
-            --red: #ef4444;
-            --input-bg: #334155;
-            --modal-bg: rgba(15, 23, 42, 0.85);
+            --bg-color: #0f172a; --card-bg: #1e293b; --text-color: #e2e8f0;
+            --accent: #3b82f6; --green: #10b981; --red: #ef4444;
+            --input-bg: #334155; --modal-bg: rgba(15, 23, 42, 0.9);
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
-        .container { max-width: 950px; margin: 0 auto; }
+        /* Oculta scroll horizontal no corpo do app */
+        body { 
+            font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); 
+            color: var(--text-color); margin: 0; padding: 15px; overflow-x: hidden; 
+        }
+        .container { max-width: 950px; margin: 0 auto; width: 100%; }
 
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--card-bg); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .controls { display: flex; gap: 10px; width: 100%; margin-bottom: 20px; }
-        input[type="text"], select { padding: 12px; background: var(--input-bg); border: 1px solid #475569; color: white; border-radius: 5px; font-size: 1rem; }
-        input[type="text"] { flex-grow: 1; }
+        header { display: flex; flex-direction: column; gap: 10px; border-bottom: 2px solid var(--card-bg); padding-bottom: 15px; margin-bottom: 20px; }
         
-        table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-        th { background: #334155; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .controls { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-bottom: 20px; }
+        input[type="text"], select { padding: 12px; background: var(--input-bg); border: 1px solid #475569; color: white; border-radius: 8px; font-size: 1rem; width: 100%; box-sizing: border-box;}
         
-        tr.linha-moeda { cursor: pointer; transition: background 0.2s ease-in-out; }
-        tr.linha-moeda:hover { background: #2c3849; }
+        /* Container responsivo para a tabela */
+        .table-container { width: 100%; overflow-x: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); min-width: 400px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background: #334155; font-size: 0.85rem; text-transform: uppercase; }
+        
+        tr.linha-moeda { cursor: pointer; }
+        tr.linha-moeda:active { background: #2c3849; } /* Melhor feedback no toque do celular */
 
-        .coin-info { display: flex; align-items: center; gap: 12px; font-weight: bold; }
-        .coin-info img { width: 26px; height: 26px; border-radius: 50%; }
-        .symbol { color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; }
+        .coin-info { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 0.95rem; }
+        .coin-info img { width: 22px; height: 22px; border-radius: 50%; }
+        .symbol { color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; }
         .positive { color: var(--green); font-weight: bold; }
         .negative { color: var(--red); font-weight: bold; }
 
         .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; background: var(--card-bg); padding: 15px; border-radius: 8px; }
-        .btn-page { padding: 10px 20px; background: var(--accent); border: none; color: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-page:hover { background: #2563eb; }
-        .btn-page:disabled { background: #475569; cursor: not-allowed; color: #94a3b8; }
-        #page-info { font-weight: bold; font-size: 1.1rem; color: var(--accent); }
+        .btn-page { padding: 10px 15px; background: var(--accent); border: none; color: white; border-radius: 5px; font-weight: bold; }
+        .btn-page:disabled { background: #475569; color: #94a3b8; }
+        #page-info { font-weight: bold; font-size: 1rem; color: var(--accent); }
 
-        /* Estilo melhorado para o indicador de sincronização */
-        #db-status { background: #020617; padding: 8px 15px; border-radius: 8px; font-size: 0.9rem; border: 1px solid #334155; color: #94a3b8; transition: 0.3s; }
+        #db-status { background: #020617; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid #334155; color: #94a3b8; text-align: center; }
         .status-syncing { color: var(--accent) !important; border-color: var(--accent) !important; }
         .status-done { color: var(--green) !important; border-color: var(--green) !important; }
 
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: var(--card-bg); width: 90%; max-width: 650px; border-radius: 12px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); position: relative; }
-        .fechar-modal { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: #94a3b8; cursor: pointer; transition: 0.2s; }
-        .fechar-modal:hover { color: var(--red); }
-        .modal-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
-        .modal-header img { width: 45px; height: 45px; }
-        .modal-header h2 { margin: 0; font-size: 1.6rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; font-size: 0.95rem; }
-        .stat-box { background: var(--input-bg); padding: 12px; border-radius: 8px; border-left: 3px solid var(--accent); }
-        .stat-label { color: #94a3b8; font-size: 0.8rem; display: block; margin-bottom: 5px; text-transform: uppercase; }
-        .chart-container { width: 100%; height: 280px; position: relative; }
-        #grafico-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-style: italic; color: #94a3b8; }
+        /* MODAL RESPONSIVO */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg); justify-content: center; align-items: center; z-index: 1000; padding: 10px; box-sizing: border-box; }
+        .modal-content { 
+            background: var(--card-bg); width: 100%; max-width: 500px; 
+            border-radius: 12px; padding: 20px; position: relative;
+            max-height: 90vh; /* Não deixa o modal ultrapassar a tela */
+            overflow-y: auto; /* Adiciona scroll interno no modal se precisar */
+            box-sizing: border-box;
+        }
+        .fechar-modal { position: absolute; top: 10px; right: 15px; font-size: 2rem; color: #94a3b8; cursor: pointer; }
+        
+        .modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 15px; padding-right: 30px; }
+        .modal-header img { width: 35px; height: 35px; }
+        .modal-header h2 { margin: 0; font-size: 1.3rem; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: var(--input-bg); padding: 10px; border-radius: 8px; border-left: 3px solid var(--accent); }
+        .stat-label { color: #94a3b8; font-size: 0.75rem; display: block; margin-bottom: 3px; text-transform: uppercase; }
+        .stat-box strong { font-size: 0.95rem; }
+        
+        .chart-container { width: 100%; height: 200px; position: relative; } /* Gráfico menor no mobile */
+        #grafico-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-style: italic; color: #94a3b8; font-size: 0.85rem; }
 
-        @media (max-width: 600px) { .controls { flex-direction: column; } .stats-grid { grid-template-columns: 1fr; } }
+        @media (min-width: 600px) {
+            header { flex-direction: row; }
+            .controls { flex-direction: row; }
+            .chart-container { height: 280px; }
+            input[type="text"] { flex-grow: 1; width: auto; }
+            select { width: auto; }
+        }
     </style>
 </head>
 <body>
@@ -73,37 +89,43 @@
     <div class="container">
         <header>
             <div>
-                <h1 style="margin: 0; margin-bottom: 5px;">Explorador de Criptomoedas</h1>
-                <div id="status" style="color:#94a3b8; font-style:italic; font-size: 0.9rem;">Preparando o painel...</div>
+                <h1 style="margin: 0; margin-bottom: 5px; font-size: 1.4rem;">Crypto Scan</h1>
+                <div id="status" style="color:#94a3b8; font-style:italic; font-size: 0.8rem;">Preparando...</div>
             </div>
             <div id="db-status">Aguardando conexão...</div>
         </header>
 
         <div class="controls">
-            <input type="text" id="campo-busca" placeholder="Pesquisar moeda por nome ou sigla (ex: Bitcoin, btc)...">
+            <input type="text" id="campo-busca" placeholder="Buscar moeda ou sigla...">
             <select id="seletor-moeda">
-                <option value="usd">Dólar Americano (USD)</option>
-                <option value="brl">Real Brasileiro (BRL)</option>
+                <option value="usd">Dólar (USD)</option>
+                <option value="brl">Real (BRL)</option>
                 <option value="eur">Euro (EUR)</option>
+                <option value="jpy">Iene (JPY)</option>
+                <option value="cny">Yuan (CNY)</option>
+                <option value="krw">Won (KRW)</option>
+                <option value="thb">Baht (THB)</option>
             </select>
         </div>
 
-        <table id="tabela-cripto">
-            <thead>
-                <tr>
-                    <th style="width: 50px; text-align: center;">#</th>
-                    <th>Moeda</th>
-                    <th>Preço Atual</th>
-                    <th>Variação (24h)</th>
-                </tr>
-            </thead>
-            <tbody id="lista-moedas"></tbody>
-        </table>
+        <div class="table-container">
+            <table id="tabela-cripto">
+                <thead>
+                    <tr>
+                        <th style="width: 40px; text-align: center;">#</th>
+                        <th>Moeda</th>
+                        <th>Preço</th>
+                        <th>24h</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-moedas"></tbody>
+            </table>
+        </div>
 
         <div class="pagination">
-            <button id="btn-prev" class="btn-page" onclick="mudarPagina('anterior')" disabled>◄ Anterior</button>
-            <span id="page-info">Página 1</span>
-            <button id="btn-next" class="btn-page" onclick="mudarPagina('proxima')">Próxima ►</button>
+            <button id="btn-prev" class="btn-page" onclick="mudarPagina('anterior')" disabled>◄ Ant</button>
+            <span id="page-info">Pág 1</span>
+            <button id="btn-next" class="btn-page" onclick="mudarPagina('proxima')">Próx ►</button>
         </div>
     </div>
 
@@ -115,12 +137,12 @@
                 <div><h2 id="modal-nome">Carregando...</h2><span id="modal-rank" style="color: #94a3b8;">Rank #--</span></div>
             </div>
             <div class="stats-grid">
-                <div class="stat-box"><span class="stat-label">Maior Preço (24h)</span><strong id="modal-high" style="color: var(--green);">--</strong></div>
-                <div class="stat-box"><span class="stat-label">Menor Preço (24h)</span><strong id="modal-low" style="color: var(--red);">--</strong></div>
-                <div class="stat-box"><span class="stat-label">Volume (24h)</span><strong id="modal-vol">--</strong></div>
-                <div class="stat-box"><span class="stat-label">Valor de Mercado</span><strong id="modal-mcap">--</strong></div>
+                <div class="stat-box"><span class="stat-label">Maior (24h)</span><strong id="modal-high" style="color: var(--green);">--</strong></div>
+                <div class="stat-box"><span class="stat-label">Menor (24h)</span><strong id="modal-low" style="color: var(--red);">--</strong></div>
+                <div class="stat-box"><span class="stat-label">Volume</span><strong id="modal-vol">--</strong></div>
+                <div class="stat-box"><span class="stat-label">Valor Mercado</span><strong id="modal-mcap">--</strong></div>
             </div>
-            <h3 style="font-size: 1.1rem; margin-top: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px;">Gráfico (Últimos 7 dias)</h3>
+            <h3 style="font-size: 1rem; margin-top: 10px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Últimos 7 dias</h3>
             <div class="chart-container">
                 <div id="grafico-loading">Buscando histórico...</div>
                 <canvas id="grafico-moeda"></canvas>
@@ -129,8 +151,15 @@
     </div>
 
     <script>
+        // REGISTRO DO SERVICE WORKER (Para o app funcionar)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .catch((erro) => console.log('Falha no Service Worker:', erro));
+            });
+        }
+
         const CHAVE_API = 'CG-5vEbN57aw5wYFCDTFEgK2oLr';
-        
         let bancoDeDadosLocal = []; 
         let moedasFiltradas = []; 
         let moedaFiatSelecionada = 'usd'; 
@@ -138,7 +167,7 @@
         let paginaAtual = 1;
         const itensPorPagina = 250; 
         
-        // Reduzido para 6 páginas, o que totaliza 1500 moedas (6 * 250)
+        // LIMITADOR: 6 páginas x 250 = Exatos 1500 moedas
         const limiteDePaginasBackground = 6; 
         let baixandoBackground = false;
 
@@ -161,13 +190,12 @@
 
         function desenharTabelaDaMemoria() {
             listaMoedas.innerHTML = ''; 
-            
             const inicio = (paginaAtual - 1) * itensPorPagina;
             const fim = inicio + itensPorPagina;
             const moedasDaTela = moedasFiltradas.slice(inicio, fim);
 
             if (moedasDaTela.length === 0) {
-                listaMoedas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 30px; color: #94a3b8;">Nenhuma moeda encontrada com este nome.</td></tr>';
+                listaMoedas.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nenhuma moeda encontrada.</td></tr>';
                 return;
             }
 
@@ -180,17 +208,16 @@
                 tr.innerHTML = `
                     <td style="color:#94a3b8; text-align: center;">${moeda.market_cap_rank || '-'}</td>
                     <td><div class="coin-info"><img src="${moeda.image}" onerror="this.src='https://via.placeholder.com/26'"><span>${moeda.name}</span><span class="symbol">${moeda.symbol}</span></div></td>
-                    <td style="font-weight: bold;">${formatarDinheiro(moeda.current_price, moedaFiatSelecionada)}</td>
-                    <td class="${pct >= 0 ? 'positive' : 'negative'}">${pct >= 0 ? '▲ ' : '▼ '}${pct.toFixed(2)}%</td>
+                    <td style="font-weight: bold; font-size:0.9rem;">${formatarDinheiro(moeda.current_price, moedaFiatSelecionada)}</td>
+                    <td class="${pct >= 0 ? 'positive' : 'negative'}">${pct >= 0 ? '▲' : '▼'}${pct.toFixed(2)}%</td>
                 `;
                 listaMoedas.appendChild(tr);
             });
-
             atualizarBotoesDePaginacao();
         }
 
         function atualizarBotoesDePaginacao() {
-            pageInfo.innerText = `Página ${paginaAtual}`;
+            pageInfo.innerText = `Pág ${paginaAtual}`;
             btnPrev.disabled = paginaAtual === 1;
             btnNext.disabled = (paginaAtual * itensPorPagina) >= moedasFiltradas.length;
         }
@@ -198,97 +225,62 @@
         function mudarPagina(direcao) {
             if (direcao === 'proxima') paginaAtual++;
             else if (direcao === 'anterior' && paginaAtual > 1) paginaAtual--;
-            
             desenharTabelaDaMemoria();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function cargaInicialRapida() {
             try {
-                statusTexto.innerText = "Buscando as principais moedas do mercado...";
+                statusTexto.innerText = "Buscando top 250...";
                 const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${moedaFiatSelecionada}&order=market_cap_desc&per_page=250&page=1&sparkline=false&x_cg_demo_api_key=${CHAVE_API}`;
-                
                 const resposta = await fetch(url);
-                const dadosIniciais = await resposta.json();
-
-                bancoDeDadosLocal = dadosIniciais;
+                bancoDeDadosLocal = await resposta.json();
                 moedasFiltradas = [...bancoDeDadosLocal]; 
                 
-                // Atualiza a interface com termos mais amigáveis
                 dbStatus.className = 'status-syncing';
-                dbStatus.innerHTML = `🔄 Mapeando mercado... (<strong>${bancoDeDadosLocal.length}</strong> moedas cadastradas)`;
+                dbStatus.innerHTML = `🔄 Carregando... (${bancoDeDadosLocal.length} moedas)`;
                 
                 desenharTabelaDaMemoria();
-                statusTexto.innerText = "Tabela pronta! Buscando mais opções em segundo plano...";
-                
+                statusTexto.innerText = "Sincronizando em 2º plano...";
                 if (!baixandoBackground) carregarRestanteNoFundo();
-
             } catch (erro) {
-                console.error(erro);
-                statusTexto.innerText = "Verifique sua conexão de internet.";
-                dbStatus.innerText = "Erro ao sincronizar dados.";
+                dbStatus.innerText = "Erro ao conectar.";
             }
         }
 
         async function carregarRestanteNoFundo() {
             baixandoBackground = true;
-            
             for (let i = 2; i <= limiteDePaginasBackground; i++) {
                 try {
                     await delay(3500); 
-
                     const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${moedaFiatSelecionada}&order=market_cap_desc&per_page=250&page=${i}&sparkline=false&x_cg_demo_api_key=${CHAVE_API}`;
                     const resposta = await fetch(url);
-                    
                     if (resposta.ok) {
                         const novosDados = await resposta.json();
                         bancoDeDadosLocal = bancoDeDadosLocal.concat(novosDados);
-                        
-                        if (campoBusca.value === '') {
-                            moedasFiltradas = [...bancoDeDadosLocal];
-                            atualizarBotoesDePaginacao(); 
-                        }
-                        
-                        // Atualiza o contador de forma suave
-                        dbStatus.innerHTML = `🔄 Mapeando mercado... (<strong>${bancoDeDadosLocal.length}</strong> opções disponíveis)`;
-                    } else {
-                        break; 
-                    }
-                } catch (e) {
-                    console.error("Erro ao sincronizar silenciosamente:", e);
-                    break;
-                }
+                        if (campoBusca.value === '') { moedasFiltradas = [...bancoDeDadosLocal]; atualizarBotoesDePaginacao(); }
+                        dbStatus.innerHTML = `🔄 Mapeando... (${bancoDeDadosLocal.length} moedas)`;
+                    } else break; 
+                } catch (e) { break; }
             }
-            
-            // Mensagem de sucesso final para o usuário
             dbStatus.className = 'status-done';
-            dbStatus.innerHTML = `✅ Sincronização concluída (<strong>${bancoDeDadosLocal.length}</strong> moedas prontas para busca)`;
-            statusTexto.innerText = "Painel online e atualizado em tempo real.";
+            dbStatus.innerHTML = `✅ Pronto! (${bancoDeDadosLocal.length} moedas)`;
+            statusTexto.innerText = "Online.";
         }
 
         campoBusca.addEventListener('input', (e) => {
             const termo = e.target.value.toLowerCase();
             paginaAtual = 1; 
-
-            if (termo === '') {
-                moedasFiltradas = [...bancoDeDadosLocal];
-            } else {
-                moedasFiltradas = bancoDeDadosLocal.filter(m => 
-                    m.name.toLowerCase().includes(termo) || m.symbol.toLowerCase().includes(termo)
-                );
-            }
+            if (termo === '') moedasFiltradas = [...bancoDeDadosLocal];
+            else moedasFiltradas = bancoDeDadosLocal.filter(m => m.name.toLowerCase().includes(termo) || m.symbol.toLowerCase().includes(termo));
             desenharTabelaDaMemoria();
         });
 
         seletorMoeda.addEventListener('change', (e) => {
             moedaFiatSelecionada = e.target.value;
-            paginaAtual = 1;
-            bancoDeDadosLocal = []; 
-            
-            dbStatus.className = '';
-            dbStatus.innerText = `Atualizando sistema financeiro...`;
-            baixandoBackground = false; 
-            cargaInicialRapida();
+            paginaAtual = 1; bancoDeDadosLocal = []; 
+            dbStatus.className = ''; dbStatus.innerText = `Atualizando...`;
+            baixandoBackground = false; cargaInicialRapida();
         });
 
         async function abrirDetalhes(idMoeda) {
@@ -297,7 +289,7 @@
             
             document.getElementById('modal-img').src = moeda.image;
             document.getElementById('modal-nome').innerText = moeda.name;
-            document.getElementById('modal-rank').innerText = `Ranking Global #${moeda.market_cap_rank || 'N/A'}`;
+            document.getElementById('modal-rank').innerText = `#${moeda.market_cap_rank || '-'}`;
             
             document.getElementById('modal-high').innerText = formatarDinheiro(moeda.high_24h, moedaFiatSelecionada);
             document.getElementById('modal-low').innerText = formatarDinheiro(moeda.low_24h, moedaFiatSelecionada);
@@ -321,8 +313,7 @@
                 document.getElementById('grafico-loading').style.display = 'none';
                 desenharGrafico(labels, precos);
             } catch (erro) {
-                console.error("Erro no gráfico", erro);
-                document.getElementById('grafico-loading').innerText = "Não foi possível carregar o histórico de preços.";
+                document.getElementById('grafico-loading').innerText = "Erro ao carregar gráfico.";
             }
         }
 
@@ -330,25 +321,14 @@
             const ctx = document.getElementById('grafico-moeda').getContext('2d');
             if (meuGrafico) meuGrafico.destroy();
             meuGrafico = new Chart(ctx, {
-                type: 'line', data: { labels: labels, datasets: [{ label: `Preço (${moedaFiatSelecionada.toUpperCase()})`, data: precos, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155', borderDash: [5, 5] } } } }
+                type: 'line', data: { labels: labels, datasets: [{ label: `Preço`, data: precos, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { ticks: { color: '#94a3b8', font: {size: 10} }, grid: { color: '#334155', borderDash: [5, 5] } } } }
             });
         }
 
         function fecharModal(evento, forcarFechar = false) { if (forcarFechar || evento.target === modal) modal.style.display = 'none'; }
 
         cargaInicialRapida();
-
     </script>
-<script>
-    // Regista o Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then((registo) => console.log('Service Worker registado com sucesso!', registo.scope))
-                .catch((erro) => console.log('Falha ao registar o Service Worker:', erro));
-        });
-    }
-</script>
 </body>
 </html>
